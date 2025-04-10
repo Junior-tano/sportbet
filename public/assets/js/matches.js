@@ -177,7 +177,7 @@ function openBetModal(matchId) {
   }
 
   // Trouver le match correspondant
-  const match = window.mockMatches.find((m) => m.id === matchId)
+  const match = (window.mockMatches || mockMatches).find((m) => m.id === matchId)
   if (!match) {
     console.error("Match not found:", matchId)
     return
@@ -253,9 +253,17 @@ function renderMatches() {
   }
 
   // Filter matches
-  let filteredMatches = window.mockMatches
+  let filteredMatches = window.mockMatches || mockMatches
   if (currentFilter !== "all" && matchListElement) {
-    filteredMatches = window.mockMatches.filter((match) => match.sport === currentFilter)
+    console.log("Filtering by sport:", currentFilter);
+    console.log("Before filter:", filteredMatches.length, "matches");
+    
+    filteredMatches = (window.mockMatches || mockMatches).filter((match) => {
+      console.log("Match sport:", match.sport, "Filter:", currentFilter);
+      return match.sport === currentFilter;
+    });
+    
+    console.log("After filter:", filteredMatches.length, "matches");
   }
 
   // Sort matches
@@ -356,7 +364,7 @@ function renderMatches() {
   
   // Render featured matches (only top 3 by popularity)
   if (featuredMatchesElement) {
-    const featuredMatches = [...window.mockMatches]
+    const featuredMatches = [...(window.mockMatches || mockMatches)]
       .sort((a, b) => b.popularity - a.popularity)
       .slice(0, 3)
     
@@ -367,7 +375,7 @@ function renderMatches() {
   
   // Render upcoming matches for dashboard (only next 5 by date)
   if (upcomingMatchesElement) {
-    const upcomingMatches = [...window.mockMatches]
+    const upcomingMatches = [...(window.mockMatches || mockMatches)]
       .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
       .slice(0, 5)
     

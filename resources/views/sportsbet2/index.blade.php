@@ -108,4 +108,23 @@
 <script src="{{ asset('assets/js/mock-data.js') }}"></script>
 <script src="{{ asset('assets/js/matches.js') }}"></script>
 <script src="{{ asset('assets/js/bets.js') }}"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+  // Initialiser les matchs du backend
+  window.mockMatches = {!! $matchesJson !!};
+  console.log("Index page loaded, matches data:", window.mockMatches);
+  
+  // Définir isUserLoggedIn pour les tests
+  window.isUserLoggedIn = function() {
+    return true; // Toujours retourner true pour les tests
+  };
+  
+  // Initialiser les matchs
+  if (typeof window.renderMatches === 'function') {
+    window.renderMatches();
+  } else {
+    console.error("renderMatches function not found!");
+  }
+});
+</script>
 @endsection

@@ -7,7 +7,14 @@ use Illuminate\Support\Facades\Route;
 //     return view('welcome');
 // });
 Route::get('/', function () {
-    return view('sportsbet2.index');
+    // Récupérer les matchs depuis le contrôleur pour la page d'accueil
+    $matchController = app(GameMatchController::class);
+    $matches = $matchController->index();
+    
+    // Convertir les données en JSON correctement formaté
+    $matchesJson = json_encode($matches);
+    
+    return view('sportsbet2.index', ['matchesJson' => $matchesJson]);
 })->name('home');
 
 Route::get('/matches', function () {
