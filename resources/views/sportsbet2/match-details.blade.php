@@ -102,6 +102,7 @@
 @endsection
 
 @section('scripts')
+<script src="{{ asset('assets/js/mock-data.js') }}"></script>
 <script>
   document.addEventListener('DOMContentLoaded', function() {
     const matchId = "{{ $matchId }}";
@@ -113,11 +114,39 @@
       };
     }
     
-    // Charger les détails du match depuis l'API ou utiliser les données mockées
+    // Charger les détails du match depuis la base de données
     async function loadMatchDetails() {
       try {
+        // D'abord, essayer de récupérer directement les données passées par le contrôleur
+        if (typeof {!! json_encode(isset($matchJson)) !!} !== 'undefined' && {!! json_encode(isset($matchJson)) !!}) {
+          const matchData = @json($matchJson ?? 'null');
+          if (matchData) {
+            console.log("Match details loaded from controller data:", matchData);
+            // Rendre disponible globalement les données du match
+            window.currentMatch = matchData;
+            window.dbMatches = window.dbMatches || [];
+            if (!window.dbMatches.some(m => String(m.id) === String(matchId))) {
+              window.dbMatches.push(matchData);
+            }
+            updateMatchUI(matchData);
+            return;
+          }
+        }
+      
+        // Ensuite, essayer de récupérer les données via l'API
+        console.log("Récupération des détails du match depuis l'API...");
         const response = await axios.get(`/api/matches/${matchId}`);
         if (response.data) {
+          // Rendre disponible globalement les données du match
+          window.currentMatch = response.data;
+          console.log("Match details loaded from API:", window.currentMatch);
+          
+          // Ajouter aux tableaux de données globaux si nécessaire
+          window.dbMatches = window.dbMatches || [];
+          if (!window.dbMatches.some(m => String(m.id) === String(matchId))) {
+            window.dbMatches.push(response.data);
+          }
+          
           updateMatchUI(response.data);
           return;
         }
@@ -126,9 +155,25 @@
       }
       
       // Si l'API échoue, rechercher dans les données mockées
-      if (window.mockMatches) {
-        const match = window.mockMatches.find(m => m.id === matchId);
+      console.log("Recherche du match dans les données existantes...");
+      
+      // Essayer d'abord dans dbMatches (priorité la plus élevée)
+      if (window.dbMatches && Array.isArray(window.dbMatches)) {
+        const match = window.dbMatches.find(m => String(m.id) === String(matchId));
         if (match) {
+          window.currentMatch = match;
+          console.log("Match details found in window.dbMatches:", window.currentMatch);
+          updateMatchUI(match);
+          return;
+        }
+      }
+      
+      // Puis dans mockMatches
+      if (window.mockMatches) {
+        const match = window.mockMatches.find(m => String(m.id) === String(matchId));
+        if (match) {
+          window.currentMatch = match;
+          console.log("Match details found in window.mockMatches:", window.currentMatch);
           updateMatchUI(match);
           return;
         }
@@ -163,6 +208,23 @@
       
       // Popularité
       document.getElementById('popularity-bar').style.width = `${match.popularity}%`;
+      
+      // Sport spécifique
+      const sportIcon = document.createElement('span');
+      sportIcon.innerHTML = match.sport === 'football' ? '<i class="fas fa-futbol"></i>' : 
+                           match.sport === 'basketball' ? '<i class="fas fa-basketball-ball"></i>' : 
+                           match.sport === 'tennis' ? '<i class="fas fa-table-tennis"></i>' : 
+                           '<i class="fas fa-trophy"></i>';
+      
+      const sportBadge = document.createElement('div');
+      sportBadge.className = 'mt-4 inline-block px-3 py-1 bg-[#f59e0b] rounded-full text-[#1a1a1a] text-sm font-bold';
+      sportBadge.appendChild(sportIcon);
+      sportBadge.innerHTML += ` ${match.sport.toUpperCase()}`;
+      
+      const headerSection = document.querySelector('.p-6.border-b.border-[#334155]');
+      if (headerSection && !document.querySelector('.p-6.border-b.border-[#334155] .bg-[#f59e0b]')) {
+        headerSection.appendChild(sportBadge);
+      }
       
       // Configurer le bouton de pari si l'utilisateur est connecté
       if (window.isUserLoggedIn()) {

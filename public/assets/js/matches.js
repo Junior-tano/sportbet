@@ -8,19 +8,43 @@ let apiMatches = [];
 // Fonction pour charger les matchs depuis l'API
 async function loadMatchesFromAPI() {
   try {
-    console.log("Chargement des matchs depuis l'API...");
+    console.log("Chargement des matchs depuis l'API (base de données)...");
     const response = await axios.get('/api/matches');
     
     if (response.data) {
-      console.log("Matchs chargés:", response.data.length);
+      console.log("Matchs chargés depuis la base de données:", response.data.length);
+      
+      // Stocker les données et les rendre disponibles globalement
       apiMatches = response.data;
+      
+      // Rendre également disponible via window pour accès global
+      window.dbMatches = response.data;
+      
+      // Remplacer les matchs mockés par ceux de la base de données
+      window.mockMatches = response.data;
+      
+      console.log("Données de matchs mises à jour avec les données de la base de données");
+      
+      // Mettre à jour l'affichage
       renderMatches();
+      
+      // Déclencher un événement personnalisé pour informer d'autres scripts
+      document.dispatchEvent(new CustomEvent('matchesLoaded', { 
+        detail: { matches: response.data } 
+      }));
+      
       return response.data;
     }
   } catch (error) {
-    console.error("Erreur lors du chargement des matchs:", error);
+    console.error("Erreur lors du chargement des matchs depuis la base de données:", error);
+    console.log("Utilisation des données mockées comme fallback");
+    
     // En cas d'erreur, utiliser les données mockées
-    apiMatches = mockMatches;
+    if (!window.mockMatches) {
+      window.mockMatches = mockMatches;
+    }
+    
+    apiMatches = window.mockMatches || mockMatches;
     renderMatches();
   }
 }
@@ -187,70 +211,143 @@ function formatDate(dateString) {
 
 // Fonction pour ouvrir le modal de paris
 function openBetModal(matchId) {
-  console.log("Opening bet modal for match:", matchId)
+  console.log("Opening bet modal for match ID:", matchId);
 
   // Vérifier si l'utilisateur est connecté
   if (!window.isUserLoggedIn()) {
-    console.log("User not logged in, redirecting to login page")
+    console.log("User not logged in, redirecting to login page");
     window.toggleAuth(); // Redirige vers la page de connexion
     return;
   }
 
   // Trouver le match correspondant
-  const match = (window.mockMatches || mockMatches).find((m) => m.id === matchId)
-  if (!match) {
-    console.error("Match not found:", matchId)
-    return
+  // Stocker toutes les sources de données potentielles, dans l'ordre de priorité
+  let sources = [];
+  
+  // 1. D'abord, vérifier apiMatches (données chargées depuis l'API/BD)
+  if (apiMatches && Array.isArray(apiMatches) && apiMatches.length > 0) {
+    sources.push({
+      name: "apiMatches (DB)", 
+      data: apiMatches.find(m => String(m.id) === String(matchId))
+    });
   }
+  
+  // 2. Vérifier window.dbMatches (données chargées depuis l'API/BD)
+  if (window.dbMatches && Array.isArray(window.dbMatches) && window.dbMatches.length > 0) {
+    sources.push({
+      name: "window.dbMatches (DB)", 
+      data: window.dbMatches.find(m => String(m.id) === String(matchId))
+    });
+  }
+  
+  // 3. Vérifier si nous avons un match spécifique dans window.currentMatch
+  if (window.currentMatch && window.currentMatch.id === matchId) {
+    sources.push({
+      name: "window.currentMatch", 
+      data: window.currentMatch
+    });
+  }
+  
+  // 4. Vérifier les matchs dans window.mockMatches (peut contenir les données de la BD)
+  if (window.mockMatches && Array.isArray(window.mockMatches) && window.mockMatches.length > 0) {
+    sources.push({
+      name: "window.mockMatches", 
+      data: window.mockMatches.find(m => String(m.id) === String(matchId))
+    });
+  }
+  
+  // 5. Vérifier les matchs dans mockMatches (local) en dernier recours
+  if (mockMatches && Array.isArray(mockMatches) && mockMatches.length > 0) {
+    sources.push({
+      name: "mockMatches (local)", 
+      data: mockMatches.find(m => String(m.id) === String(matchId))
+    });
+  }
+  
+  // Journaliser les sources disponibles
+  console.log("Sources de données disponibles:", sources.map(s => s.name));
+  
+  // Trouver le premier match valide dans les sources
+  let matchData = null;
+  for (const source of sources) {
+    if (source.data) {
+      console.log(`Match trouvé dans ${source.name}:`, source.data);
+      matchData = source.data;
+      break;
+    }
+  }
+  
+  // Si aucun match n'est trouvé
+  if (!matchData) {
+    console.error("Match non trouvé pour l'ID:", matchId);
+    console.log("Sources de données:", {
+      "apiMatches": apiMatches ? apiMatches.length : 'undefined',
+      "window.dbMatches": window.dbMatches ? window.dbMatches.length : 'undefined',
+      "window.currentMatch": window.currentMatch,
+      "window.mockMatches": window.mockMatches ? window.mockMatches.length : 'undefined',
+      "mockMatches": mockMatches ? mockMatches.length : 'undefined'
+    });
+    return;
+  }
+  
+  const match = matchData;
+  console.log("Match sélectionné pour le pari:", match);
+  console.log(`Sport: ${match.sport}, Teams: ${match.homeTeam} vs ${match.awayTeam}`);
 
   // Mettre à jour le titre du modal
-  const betModalTitle = document.getElementById("bet-modal-title")
+  const betModalTitle = document.getElementById("bet-modal-title");
   if (betModalTitle) {
-    betModalTitle.textContent = `Parier sur ${match.homeTeam} vs ${match.awayTeam}`
+    betModalTitle.textContent = `Parier sur ${match.homeTeam} vs ${match.awayTeam}`;
   }
 
   // Mettre à jour les boutons d'équipe
-  const homeTeamBtn = document.getElementById("home-team-btn")
-  const awayTeamBtn = document.getElementById("away-team-btn")
+  const homeTeamBtn = document.getElementById("home-team-btn");
+  const awayTeamBtn = document.getElementById("away-team-btn");
 
   if (homeTeamBtn) {
-    homeTeamBtn.textContent = match.homeTeam
-    homeTeamBtn.setAttribute("data-odds", match.homeOdds)
+    homeTeamBtn.textContent = match.homeTeam;
+    homeTeamBtn.setAttribute("data-odds", match.homeOdds);
+    homeTeamBtn.setAttribute("data-team", match.homeTeam);
+    homeTeamBtn.setAttribute("data-match-id", match.id);
+    homeTeamBtn.setAttribute("data-sport", match.sport);
   }
 
   if (awayTeamBtn) {
-    awayTeamBtn.textContent = match.awayTeam
-    awayTeamBtn.setAttribute("data-odds", match.awayOdds)
+    awayTeamBtn.textContent = match.awayTeam;
+    awayTeamBtn.setAttribute("data-odds", match.awayOdds);
+    awayTeamBtn.setAttribute("data-team", match.awayTeam);
+    awayTeamBtn.setAttribute("data-match-id", match.id);
+    awayTeamBtn.setAttribute("data-sport", match.sport);
   }
 
   // Réinitialiser la sélection d'équipe
-  if (homeTeamBtn) homeTeamBtn.classList.remove("bg-[#10b981]", "text-white")
-  if (awayTeamBtn) awayTeamBtn.classList.remove("bg-[#10b981]", "text-white")
+  if (homeTeamBtn) homeTeamBtn.classList.remove("bg-[#10b981]", "text-white");
+  if (awayTeamBtn) awayTeamBtn.classList.remove("bg-[#10b981]", "text-white");
 
   // Stocker l'ID du match dans le formulaire
-  const betMatchIdInput = document.getElementById("bet-match-id")
+  const betMatchIdInput = document.getElementById("bet-match-id");
   if (betMatchIdInput) {
-    betMatchIdInput.value = matchId
+    betMatchIdInput.value = match.id;
   }
 
   // Réinitialiser le montant du pari
-  const betAmountInput = document.getElementById("bet-amount")
+  const betAmountInput = document.getElementById("bet-amount");
   if (betAmountInput) {
-    betAmountInput.value = ""
+    betAmountInput.value = "";
   }
 
   // Cacher les messages d'erreur
   if (typeof window.hideError === "function") {
-    window.hideError("bet-error")
+    window.hideError("bet-error");
   }
 
   // Afficher le modal
   if (typeof window.showModal === "function") {
-    window.showModal("bet-modal")
+    window.showModal("bet-modal");
   } else {
-    const betModal = document.getElementById("bet-modal")
+    const betModal = document.getElementById("bet-modal");
     if (betModal) {
-      betModal.classList.remove("hidden")
+      betModal.classList.remove("hidden");
     }
   }
 }
@@ -272,8 +369,28 @@ function renderMatches() {
     return
   }
 
-  // Utiliser les matchs de l'API en priorité, sinon utiliser les mocks
-  const matchesData = apiMatches.length > 0 ? apiMatches : mockMatches;
+  // Prioriser les données dans cet ordre:
+  // 1. apiMatches (chargé depuis l'API/base de données)
+  // 2. window.dbMatches (aussi chargé depuis l'API/base de données)
+  // 3. window.mockMatches (peut être remplacé par les données de l'API)
+  // 4. mockMatches locales (comme dernier recours)
+  let matchesData;
+  
+  if (apiMatches && apiMatches.length > 0) {
+    console.log("Utilisation des données de matchs depuis apiMatches");
+    matchesData = apiMatches;
+  } else if (window.dbMatches && window.dbMatches.length > 0) {
+    console.log("Utilisation des données de matchs depuis window.dbMatches");
+    matchesData = window.dbMatches;
+  } else if (window.mockMatches && window.mockMatches.length > 0) {
+    console.log("Utilisation des données de matchs depuis window.mockMatches");
+    matchesData = window.mockMatches;
+  } else {
+    console.log("Utilisation des données de matchs mockées locales");
+    matchesData = mockMatches;
+  }
+  
+  console.log(`Nombre total de matchs à afficher: ${matchesData.length}`);
 
   // Filter matches
   let filteredMatches = matchesData;
@@ -282,7 +399,6 @@ function renderMatches() {
     console.log("Before filter:", filteredMatches.length, "matches");
     
     filteredMatches = matchesData.filter((match) => {
-      console.log("Match sport:", match.sport, "Filter:", currentFilter);
       return match.sport === currentFilter;
     });
     
@@ -399,9 +515,13 @@ function renderMatches() {
   
   // Render featured matches (only top 3 by popularity)
   if (featuredMatchesElement) {
-    const featuredMatches = [...(window.mockMatches || mockMatches)]
+    // Utiliser les mêmes données que pour l'affichage principal
+    const featuredMatches = [...matchesData]
       .sort((a, b) => b.popularity - a.popularity)
       .slice(0, 3)
+    
+    console.log("Affichage des 3 matchs les plus populaires:", 
+      featuredMatches.map(m => `${m.homeTeam} vs ${m.awayTeam} (${m.sport})`));
     
     featuredMatchesElement.innerHTML = featuredMatches
       .map(generateMatchCard)
@@ -410,9 +530,13 @@ function renderMatches() {
   
   // Render upcoming matches for dashboard (only next 5 by date)
   if (upcomingMatchesElement) {
-    const upcomingMatches = [...(window.mockMatches || mockMatches)]
+    // Utiliser les mêmes données que pour l'affichage principal
+    const upcomingMatches = [...matchesData]
       .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
       .slice(0, 5)
+    
+    console.log("Affichage des 5 prochains matchs:", 
+      upcomingMatches.map(m => `${m.homeTeam} vs ${m.awayTeam} (${m.sport})`));
     
     upcomingMatchesElement.innerHTML = upcomingMatches
       .map(generateCompactMatchCard)

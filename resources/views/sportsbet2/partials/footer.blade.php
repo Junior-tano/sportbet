@@ -80,7 +80,7 @@
       
       <div class="mb-4">
         <label for="bet-amount" class="block mb-2">Montant du pari (XOF):</label>
-        <input type="number" id="bet-amount" class="w-full bg-[#334155] rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-[#10b981]" min="1" step="1" required>
+        <input type="number" id="bet-amount" class="w-full bg-[#334155] rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-[#10b981]" min="1" step="1" required onchange="window.updatePotentialWin()" oninput="window.updatePotentialWin()">
       </div>
       
       <div class="mb-4">

@@ -133,8 +133,10 @@
 <script>
 document.addEventListener("DOMContentLoaded", function() {
   // Initialiser les matchs du backend
+  window.dbMatches = {!! $matchesJson !!};
   window.mockMatches = {!! $matchesJson !!};
-  console.log("Index page loaded, matches data:", window.mockMatches);
+  
+  console.log("Index page loaded, matches data from database:", window.dbMatches.length);
   
   // S'assurer que l'état d'authentification est correctement détecté
   if (!window.isUserLoggedIn && window.APP_STATE) {
@@ -145,7 +147,14 @@ document.addEventListener("DOMContentLoaded", function() {
   
   // Initialiser les matchs
   if (typeof window.renderMatches === 'function') {
-    window.renderMatches();
+    // Forcer le chargement des matchs depuis la base de données
+    if (typeof window.loadMatchesFromAPI === 'function') {
+      console.log("Chargement des matchs depuis la base de données...");
+      window.loadMatchesFromAPI();
+    } else {
+      console.log("Fonction loadMatchesFromAPI non disponible, utilisation du rendu direct");
+      window.renderMatches();
+    }
   } else {
     console.error("renderMatches function not found!");
   }
