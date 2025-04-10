@@ -2,13 +2,13 @@
 let currentFilter = "all"
 let currentSort = "date"
 
-// Mock data for matches
-const mockMatches = [
+// Mock data for matches - sera remplacé par les données du backend lorsque disponibles
+let mockMatches = [
   {
     id: "1",
     homeTeam: "Real Madrid",
     awayTeam: "Barcelona",
-    homeOdds: 1.5,
+    homeOdds: 20.5,
     awayOdds: 2.5,
     drawOdds: 3.2,
     date: "2024-04-15T18:00:00.000Z",
@@ -177,7 +177,7 @@ function openBetModal(matchId) {
   }
 
   // Trouver le match correspondant
-  const match = mockMatches.find((m) => m.id === matchId)
+  const match = window.mockMatches.find((m) => m.id === matchId)
   if (!match) {
     console.error("Match not found:", matchId)
     return
@@ -253,9 +253,9 @@ function renderMatches() {
   }
 
   // Filter matches
-  let filteredMatches = mockMatches
+  let filteredMatches = window.mockMatches
   if (currentFilter !== "all" && matchListElement) {
-    filteredMatches = mockMatches.filter((match) => match.sport === currentFilter)
+    filteredMatches = window.mockMatches.filter((match) => match.sport === currentFilter)
   }
 
   // Sort matches
@@ -316,8 +316,7 @@ function renderMatches() {
       </div>
 
       <div class="border-t border-[#334155] bg-[#1e293b] p-4">
-        ${
-          isLoggedIn
+        ${isLoggedIn
             ? `<button class="bet-button w-full bg-[#f59e0b] hover:bg-[#f59e0b]/90 text-[#1a1a1a] font-medium py-2 px-4 rounded-md" data-match-id="${match.id}">
               Parier maintenant
              </button>`
@@ -357,7 +356,7 @@ function renderMatches() {
   
   // Render featured matches (only top 3 by popularity)
   if (featuredMatchesElement) {
-    const featuredMatches = [...mockMatches]
+    const featuredMatches = [...window.mockMatches]
       .sort((a, b) => b.popularity - a.popularity)
       .slice(0, 3)
     
@@ -368,7 +367,7 @@ function renderMatches() {
   
   // Render upcoming matches for dashboard (only next 5 by date)
   if (upcomingMatchesElement) {
-    const upcomingMatches = [...mockMatches]
+    const upcomingMatches = [...window.mockMatches]
       .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
       .slice(0, 5)
     
@@ -439,5 +438,4 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // Make functions globally available
 window.renderMatches = renderMatches
-window.mockMatches = mockMatches
 window.openBetModal = openBetModal

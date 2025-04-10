@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\GameMatchController;
 use Illuminate\Support\Facades\Route;
 
 // Route::get('/', function () {
@@ -10,7 +11,14 @@ Route::get('/', function () {
 })->name('home');
 
 Route::get('/matches', function () {
-    return view('sportsbet2.matchs');
+    // Récupérer les matchs depuis le contrôleur
+    $matchController = app(GameMatchController::class);
+    $matches = $matchController->index();
+    
+    // Convertir les données en JSON correctement formaté
+    $matchesJson = json_encode($matches);
+    
+    return view('sportsbet2.matchs', ['matchesJson' => $matchesJson]);
 })->name('matches');
 
 Route::get('/my-bets', function () {

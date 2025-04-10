@@ -59,9 +59,9 @@
   <script src="{{ asset('assets/js/ui.js') }}"></script>
   <script src="{{ asset('assets/js/auth.js') }}"></script>
   <script src="{{ asset('assets/js/bets.js') }}"></script>
-  <script src="{{ asset('assets/js/matches.js') }}"></script>
   <script src="{{ asset('assets/js/search.js') }}"></script>
   <script src="{{ asset('assets/js/notifications.js') }}"></script>
+  <script src="{{ asset('assets/js/matches.js') }}"></script>
   @yield('scripts')
 </body>
 </html> 
