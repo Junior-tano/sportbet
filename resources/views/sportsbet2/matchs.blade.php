@@ -21,25 +21,59 @@
 @endsection
 
 @section('content')
-<h1 class="text-3xl font-bold mb-8">Matchs à venir</h1>
-
-<div id="match-filters" class="flex flex-col md:flex-row justify-between mb-4 gap-4">
-  <div class="flex flex-wrap gap-2">
-    <button class="filter-btn text-sm px-4 py-2 rounded-md bg-[#10b981] text-white" data-filter="all">Tous</button>
-    <button class="filter-btn text-sm px-4 py-2 rounded-md bg-transparent border border-[#334155] hover:bg-[#334155]" data-filter="football">Football</button>
-    <button class="filter-btn text-sm px-4 py-2 rounded-md bg-transparent border border-[#334155] hover:bg-[#334155]" data-filter="basketball">Basketball</button>
-    <button class="filter-btn text-sm px-4 py-2 rounded-md bg-transparent border border-[#334155] hover:bg-[#334155]" data-filter="tennis">Tennis</button>
+<div class="container mx-auto px-4 py-8">
+  <div class="mb-8 flex flex-col md:flex-row justify-between items-start md:items-center">
+    <h1 class="text-3xl font-bold mb-4 md:mb-0">Matchs Disponibles</h1>
+    <div class="flex flex-wrap gap-2">
+      <button class="filter-btn px-4 py-2 rounded-md bg-[#10b981] text-white" data-filter="all">
+        Tous
+      </button>
+      <button class="filter-btn px-4 py-2 rounded-md bg-transparent border border-[#334155]" data-filter="football">
+        <i class="fas fa-futbol mr-2"></i>Football
+      </button>
+      <button class="filter-btn px-4 py-2 rounded-md bg-transparent border border-[#334155]" data-filter="basketball">
+        <i class="fas fa-basketball-ball mr-2"></i>Basketball
+      </button>
+      <button class="filter-btn px-4 py-2 rounded-md bg-transparent border border-[#334155]" data-filter="tennis">
+        <i class="fas fa-table-tennis mr-2"></i>Tennis
+      </button>
+    </div>
   </div>
-  <div class="w-full md:w-48">
-    <select id="sort-select" class="w-full px-4 py-2 rounded-md bg-[#334155] text-[#f2f2f2] border border-[#334155] focus:outline-none focus:ring-2 focus:ring-[#10b981]">
-      <option value="date">Trier par date</option>
-      <option value="popularity">Trier par popularité</option>
-    </select>
-  </div>
-</div>
 
-<div id="match-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-  <!-- Will be populated by JavaScript -->
+  <!-- Message pour les utilisateurs non connectés -->
+  <div id="auth-message" class="mb-8 p-4 bg-[#334155] rounded-lg flex items-center justify-between" 
+       style="display: none;">
+    <div class="flex items-center">
+      <i class="fas fa-info-circle text-[#10b981] text-2xl mr-3"></i>
+      <div>
+        <p class="font-medium">Pour parier sur ces matchs, veuillez vous connecter</p>
+        <p class="text-sm text-[#b3b3b3]">Créez un compte et recevez 1000€ virtuels pour commencer à parier</p>
+      </div>
+    </div>
+    <div class="flex space-x-3">
+      <a href="/register" class="border border-[#10b981] text-[#10b981] px-4 py-2 rounded-md hover:bg-[#10b981] hover:text-white login-hover-effect">
+        Créer un compte
+      </a>
+      <a href="/login" class="bg-[#10b981] hover:bg-[#10b981]/90 text-white px-4 py-2 rounded-md login-hover-effect">
+        Se connecter
+      </a>
+    </div>
+  </div>
+
+  <div class="flex justify-between items-center mb-6">
+    <h2 class="text-xl font-medium">Résultats: <span id="match-count">0</span> matchs</h2>
+    <div class="flex items-center">
+      <label for="sort-select" class="mr-2 text-sm">Trier par:</label>
+      <select id="sort-select" class="bg-[#334155] text-white border-none rounded-md p-2">
+        <option value="date">Date</option>
+        <option value="popularity">Popularité</option>
+      </select>
+    </div>
+  </div>
+
+  <div id="match-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <!-- Les matchs seront chargés dynamiquement par JavaScript -->
+  </div>
 </div>
 
 <!-- Bet Form Modal -->
@@ -232,10 +266,36 @@
       errorElement.classList.remove("hidden");
     }
     
-    // Définir isUserLoggedIn pour les tests
-    window.isUserLoggedIn = function() {
-      return true; // Toujours retourner true pour les tests
-    };
+    // S'assurer que l'état d'authentification est correctement détecté
+    if (!window.isUserLoggedIn && window.APP_STATE) {
+      window.isUserLoggedIn = function() {
+        return window.APP_STATE.isAuthenticated;
+      };
+    }
+    
+    // Afficher le message d'authentification si l'utilisateur n'est pas connecté
+    const authMessage = document.getElementById('auth-message');
+    if (authMessage && !window.isUserLoggedIn()) {
+      authMessage.style.display = 'flex';
+    }
+    
+    // Mettre à jour le compteur de matchs
+    function updateMatchCount() {
+      const matchCount = document.getElementById('match-count');
+      const matchList = document.getElementById('match-list');
+      if (matchCount && matchList) {
+        matchCount.textContent = matchList.children.length;
+      }
+    }
+    
+    // Surcharger la fonction renderMatches pour mettre à jour le compteur de matchs
+    const originalRenderMatches = window.renderMatches;
+    if (typeof originalRenderMatches === 'function') {
+      window.renderMatches = function() {
+        originalRenderMatches();
+        updateMatchCount();
+      }
+    }
     
     // Initialiser les matchs
     if (typeof window.renderMatches === 'function') {

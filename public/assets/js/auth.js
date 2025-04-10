@@ -48,9 +48,24 @@ document.addEventListener("DOMContentLoaded", function() {
     });
   });
   
+  // Gérer les boutons "login-to-bet"
+  const loginToBetButtons = document.querySelectorAll('.login-to-bet');
+  loginToBetButtons.forEach(button => {
+    button.addEventListener('click', function(e) {
+      e.preventDefault();
+      window.location.href = '/login';
+    });
+  });
+  
   // Ajouter la classe requires-auth à tous les boutons de pari
   const betButtons = document.querySelectorAll('.bet-button');
   betButtons.forEach(button => {
     button.classList.add('requires-auth');
   });
+  
+  // Afficher un message d'avertissement dans la console si un utilisateur non connecté tente d'utiliser les fonctionnalités protégées
+  console.log("État d'authentification :", window.isUserLoggedIn() ? "Connecté" : "Non connecté");
+  if (!window.isUserLoggedIn()) {
+    console.log("Vous devez être connecté pour parier. Certaines fonctionnalités sont désactivées.");
+  }
 }); 

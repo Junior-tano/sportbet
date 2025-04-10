@@ -79,12 +79,12 @@
       </div>
       
       <div class="mb-4">
-        <label for="bet-amount" class="block mb-2">Montant du pari (€):</label>
+        <label for="bet-amount" class="block mb-2">Montant du pari (XOF):</label>
         <input type="number" id="bet-amount" class="w-full bg-[#334155] rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-[#10b981]" min="1" step="1" required>
       </div>
       
       <div class="mb-4">
-        <p>Gain potentiel: <span id="potential-win">0.00</span> €</p>
+        <p>Gain potentiel: <span id="potential-win">0.00</span> XOF</p>
       </div>
       
       <div class="flex justify-end space-x-2 mt-6">

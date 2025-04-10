@@ -54,15 +54,37 @@
 
     <!-- Featured Matches -->
     <div class="mt-16">
-      <div class="flex items-center justify-between mb-6">
-        <h2 class="text-2xl font-bold">Matchs à la Une</h2>
-        <a href="{{ route('matches') }}" class="flex items-center text-[#10b981] hover:underline">
-          <span>Voir tous les matchs</span>
-          <i class="fas fa-arrow-right ml-2"></i>
-        </a>
+      <div class="text-center mb-12">
+        <h2 class="text-3xl font-bold mb-2">Matchs Populaires</h2>
+        <p class="text-[#b3b3b3]">Placez vos paris sur les matchs les plus attendus</p>
       </div>
-      <div id="featured-matches" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        <!-- Will be populated by JavaScript -->
+
+      <div id="featured-matches" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Les cartes de match seront chargées dynamiquement par JavaScript -->
+        <div class="animate-pulse bg-[#1e293b] rounded-lg p-4">
+          <div class="h-40 bg-[#334155] rounded-md mb-4"></div>
+          <div class="h-6 bg-[#334155] rounded w-3/4 mb-2"></div>
+          <div class="h-4 bg-[#334155] rounded w-1/2 mb-4"></div>
+          <div class="h-8 bg-[#334155] rounded w-full"></div>
+        </div>
+        <div class="animate-pulse bg-[#1e293b] rounded-lg p-4">
+          <div class="h-40 bg-[#334155] rounded-md mb-4"></div>
+          <div class="h-6 bg-[#334155] rounded w-3/4 mb-2"></div>
+          <div class="h-4 bg-[#334155] rounded w-1/2 mb-4"></div>
+          <div class="h-8 bg-[#334155] rounded w-full"></div>
+        </div>
+        <div class="animate-pulse bg-[#1e293b] rounded-lg p-4">
+          <div class="h-40 bg-[#334155] rounded-md mb-4"></div>
+          <div class="h-6 bg-[#334155] rounded w-3/4 mb-2"></div>
+          <div class="h-4 bg-[#334155] rounded w-1/2 mb-4"></div>
+          <div class="h-8 bg-[#334155] rounded w-full"></div>
+        </div>
+      </div>
+
+      <div class="text-center mt-8">
+        <a href="{{ route('matches') }}" class="inline-block bg-[#10b981] hover:bg-[#10b981]/90 text-white font-medium py-3 px-6 rounded-md">
+          Voir tous les matchs
+        </a>
       </div>
     </div>
 
@@ -93,11 +115,11 @@
       <div class="flex flex-col md:flex-row items-center justify-between">
         <div class="mb-6 md:mb-0">
           <h2 class="text-2xl font-bold mb-2">Prêt à commencer ?</h2>
-          <p class="text-white text-opacity-80">Inscrivez-vous et recevez 1000€ virtuels pour commencer à parier</p>
+          <p class="text-white text-opacity-80">Inscrivez-vous et recevez 1000XOF virtuels pour commencer à parier</p>
         </div>
-        <button id="cta-button" class="bg-white text-[#10b981] font-bold py-3 px-6 rounded-md hover:bg-opacity-90 transition-colors">
+        <a href="{{ route('register') }}" class="bg-white text-[#10b981] font-bold py-3 px-6 rounded-md hover:bg-opacity-90 transition-colors login-hover-effect">
           Créer un compte
-        </button>
+        </a>
       </div>
     </div>
   </div>
@@ -114,10 +136,12 @@ document.addEventListener("DOMContentLoaded", function() {
   window.mockMatches = {!! $matchesJson !!};
   console.log("Index page loaded, matches data:", window.mockMatches);
   
-  // Définir isUserLoggedIn pour les tests
-  window.isUserLoggedIn = function() {
-    return true; // Toujours retourner true pour les tests
-  };
+  // S'assurer que l'état d'authentification est correctement détecté
+  if (!window.isUserLoggedIn && window.APP_STATE) {
+    window.isUserLoggedIn = function() {
+      return window.APP_STATE.isAuthenticated;
+    };
+  }
   
   // Initialiser les matchs
   if (typeof window.renderMatches === 'function') {

@@ -41,9 +41,30 @@
       </div>
 
       <div class="mt-8">
+        @auth
         <button id="bet-now-btn" class="w-full bg-[#f59e0b] hover:bg-[#f59e0b]/90 text-[#1a1a1a] font-medium py-3 px-4 rounded-md requires-auth">
           Parier maintenant
         </button>
+        @else
+        <div class="relative">
+          <button class="w-full bg-[#334155] text-[#8a8a8a] font-medium py-3 px-4 rounded-md cursor-not-allowed opacity-80" disabled>
+            <i class="fas fa-lock mr-2"></i>Connectez-vous pour parier
+          </button>
+          <div class="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity duration-300">
+            <div class="flex space-x-3">
+              <a href="{{ route('register') }}" class="border border-[#10b981] text-[#10b981] px-4 py-2 rounded-md hover:bg-[#10b981] hover:text-white login-hover-effect">
+                Créer un compte
+              </a>
+              <a href="{{ route('login') }}" class="bg-[#10b981] text-white px-4 py-2 rounded-md login-hover-effect">
+                Se connecter
+              </a>
+            </div>
+          </div>
+        </div>
+        <div class="mt-4 text-center text-sm text-[#b3b3b3]">
+          <p>Créez un compte et recevez 1000€ virtuels pour commencer à parier</p>
+        </div>
+        @endauth
       </div>
     </div>
   </div>
@@ -84,6 +105,13 @@
 <script>
   document.addEventListener('DOMContentLoaded', function() {
     const matchId = "{{ $matchId }}";
+    
+    // S'assurer que l'état d'authentification est correctement détecté
+    if (!window.isUserLoggedIn && window.APP_STATE) {
+      window.isUserLoggedIn = function() {
+        return window.APP_STATE.isAuthenticated;
+      };
+    }
     
     // Charger les détails du match depuis l'API ou utiliser les données mockées
     async function loadMatchDetails() {
@@ -136,14 +164,16 @@
       // Popularité
       document.getElementById('popularity-bar').style.width = `${match.popularity}%`;
       
-      // Configurer le bouton de pari
-      const betButton = document.getElementById('bet-now-btn');
-      if (betButton) {
-        betButton.addEventListener('click', function() {
-          if (typeof window.openBetModal === 'function') {
-            window.openBetModal(matchId);
-          }
-        });
+      // Configurer le bouton de pari si l'utilisateur est connecté
+      if (window.isUserLoggedIn()) {
+        const betButton = document.getElementById('bet-now-btn');
+        if (betButton) {
+          betButton.addEventListener('click', function() {
+            if (typeof window.openBetModal === 'function') {
+              window.openBetModal(matchId);
+            }
+          });
+        }
       }
     }
     

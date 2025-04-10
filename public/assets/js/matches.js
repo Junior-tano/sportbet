@@ -349,11 +349,18 @@ function renderMatches() {
       <div class="border-t border-[#334155] bg-[#1e293b] p-4">
         ${isLoggedIn
             ? `<button class="bet-button w-full bg-[#f59e0b] hover:bg-[#f59e0b]/90 text-[#1a1a1a] font-medium py-2 px-4 rounded-md" data-match-id="${match.id}">
-              Parier maintenant
-             </button>`
-            : `<button class="login-to-bet w-full bg-[#334155] hover:bg-[#334155]/90 text-[#f2f2f2] font-medium py-2 px-4 rounded-md">
-              Connectez-vous pour parier
-             </button>`
+                Parier maintenant
+              </button>`
+            : `<div class="relative">
+                <button class="w-full bg-[#334155] text-[#8a8a8a] font-medium py-2 px-4 rounded-md cursor-not-allowed opacity-80" disabled>
+                  <i class="fas fa-lock mr-2"></i>Connectez-vous pour parier
+                </button>
+                <div class="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity duration-300">
+                  <a href="/login" class="bg-[#10b981] text-white px-4 py-2 rounded-md login-hover-effect">
+                    Se connecter
+                  </a>
+                </div>
+              </div>`
         }
       </div>
     </div>
@@ -372,9 +379,14 @@ function renderMatches() {
           <span>${formatDate(match.date)}</span>
         </div>
       </div>
-      <button class="bet-button text-xs bg-[#f59e0b] hover:bg-[#f59e0b]/90 text-[#1a1a1a] px-2 py-1 rounded" data-match-id="${match.id}">
-        Parier
-      </button>
+      ${isLoggedIn
+        ? `<button class="bet-button text-xs bg-[#f59e0b] hover:bg-[#f59e0b]/90 text-[#1a1a1a] px-2 py-1 rounded" data-match-id="${match.id}">
+            Parier
+           </button>`
+        : `<a href="/login" class="text-xs bg-[#10b981] text-white px-2 py-1 rounded login-hover-effect">
+            Se connecter
+           </a>`
+      }
     </div>
   `
 

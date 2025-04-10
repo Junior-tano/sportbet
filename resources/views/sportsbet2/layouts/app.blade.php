@@ -36,6 +36,22 @@
     .dashboard-card {
       background: linear-gradient(to bottom right, #1e293b, #1a2332);
     }
+    
+    /* Styles pour les boutons désactivés */
+    button:disabled {
+      cursor: not-allowed;
+      opacity: 0.7;
+    }
+    
+    /* Animation de surbrillance pour le bouton de connexion au survol */
+    .login-hover-effect {
+      transition: all 0.3s ease;
+    }
+    
+    .login-hover-effect:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
+    }
   </style>
   @yield('styles')
 </head>
