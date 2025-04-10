@@ -1,100 +1,56 @@
-// Simplified auth management with toggle
-let isLoggedIn = true // Changé à true par défaut pour que l'utilisateur soit connecté
+// Authentication management for SportBet
+document.addEventListener("DOMContentLoaded", function() {
+  // Configuration pour les requêtes AJAX
+  window.setupCSRFToken = function() {
+    // Récupérer le token CSRF depuis les meta tags
+    const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    
+    // Configurer les en-têtes par défaut pour axios ou fetch
+    if (window.axios) {
+      window.axios.defaults.headers.common['X-CSRF-TOKEN'] = token;
+    }
+    
+    return token;
+  };
+  
+  // Initialiser le token CSRF
+  window.csrfToken = window.setupCSRFToken();
 
-// Initialize auth state from localStorage
-function initAuth() {
-  const savedState = localStorage.getItem("isLoggedIn")
-  if (savedState === "true") {
-    isLoggedIn = true
-  } else if (savedState === "false") {
-    isLoggedIn = false
-  } else {
-    // Si aucun état n'est sauvegardé, on définit l'utilisateur comme connecté par défaut
-    localStorage.setItem("isLoggedIn", "true")
-  }
-  updateAuthUI()
-}
+  // Définir la fonction pour vérifier si l'utilisateur est authentifié
+  window.isUserLoggedIn = function() {
+    // D'abord vérifier si l'état d'authentification est exposé par le serveur
+    if (window.APP_STATE && typeof window.APP_STATE.isAuthenticated !== 'undefined') {
+      return window.APP_STATE.isAuthenticated;
+    }
+    
+    // Fallback: Vérifie si l'élément avec classe 'auth-user' existe dans le header
+    return document.querySelector('.auth-user') !== null;
+  };
 
-// Toggle login state
-function toggleAuth() {
-  isLoggedIn = !isLoggedIn
+  // Redirection vers la page de connexion pour les utilisateurs non authentifiés
+  window.toggleAuth = function() {
+    if (!window.isUserLoggedIn()) {
+      window.location.href = '/login';
+      return false;
+    }
+    return true;
+  };
 
-  // Save to localStorage for persistence
-  localStorage.setItem("isLoggedIn", isLoggedIn.toString())
-
-  // Update UI
-  updateAuthUI()
-
-  // Refresh the page to update all components
-  location.reload()
-}
-
-// Update UI based on auth state
-function updateAuthUI() {
-  const userSectionDesktop = document.getElementById("user-section")
-  const userSectionMobile = document.getElementById("mobile-user-section")
-
-  if (!userSectionDesktop || !userSectionMobile) return
-
-  if (isLoggedIn) {
-    // Desktop
-    userSectionDesktop.innerHTML = `
-      <div class="flex items-center gap-2 bg-[#334155] px-3 py-2 rounded-md">
-        <i class="fas fa-user text-[#10b981]"></i>
-        <span>Utilisateur</span>
-      </div>
-      <button id="auth-toggle-btn" class="border border-[#10b981] text-[#10b981] px-4 py-2 rounded-md hover:bg-[#10b981] hover:text-white">
-        Déconnexion
-      </button>
-    `
-
-    // Mobile
-    userSectionMobile.innerHTML = `
-      <div class="px-3 py-2 flex items-center gap-2 bg-[#334155] rounded-md">
-        <i class="fas fa-user text-[#10b981]"></i>
-        <span>Utilisateur</span>
-      </div>
-      <button id="mobile-auth-toggle-btn" class="w-full border border-[#10b981] text-[#10b981] px-4 py-2 rounded-md hover:bg-[#10b981] hover:text-white">
-        Déconnexion
-      </button>
-    `
-  } else {
-    // Desktop
-    userSectionDesktop.innerHTML = `
-      <button id="auth-toggle-btn" class="bg-[#10b981] text-white px-4 py-2 rounded-md hover:bg-[#10b981]/90">
-        Connexion
-      </button>
-    `
-
-    // Mobile
-    userSectionMobile.innerHTML = `
-      <button id="mobile-auth-toggle-btn" class="w-full bg-[#10b981] text-white px-4 py-2 rounded-md hover:bg-[#10b981]/90">
-        Connexion
-      </button>
-    `
-  }
-
-  // Add event listeners to toggle buttons
-  const authToggleBtn = document.getElementById("auth-toggle-btn")
-  const mobileAuthToggleBtn = document.getElementById("mobile-auth-toggle-btn")
-
-  if (authToggleBtn) {
-    authToggleBtn.addEventListener("click", toggleAuth)
-  }
-
-  if (mobileAuthToggleBtn) {
-    mobileAuthToggleBtn.addEventListener("click", toggleAuth)
-  }
-}
-
-// Function to check if user is logged in
-function isUserLoggedIn() {
-  return isLoggedIn
-}
-
-// Initialize auth when DOM is loaded
-document.addEventListener("DOMContentLoaded", initAuth)
-
-// Make functions globally available
-window.isUserLoggedIn = isUserLoggedIn
-window.toggleAuth = toggleAuth
+  // Vérifier que les éléments nécessitant l'authentification sont protégés
+  const protectedButtons = document.querySelectorAll('.requires-auth');
+  protectedButtons.forEach(button => {
+    button.addEventListener('click', function(e) {
+      if (!window.isUserLoggedIn()) {
+        e.preventDefault();
+        window.toggleAuth();
+        return false;
+      }
+    });
+  });
+  
+  // Ajouter la classe requires-auth à tous les boutons de pari
+  const betButtons = document.querySelectorAll('.bet-button');
+  betButtons.forEach(button => {
+    button.classList.add('requires-auth');
+  });
+}); 

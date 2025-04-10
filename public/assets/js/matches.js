@@ -2,7 +2,30 @@
 let currentFilter = "all"
 let currentSort = "date"
 
-// Mock data for matches - sera remplacé par les données du backend lorsque disponibles
+// Données de matches initialement vides, seront chargées depuis l'API
+let apiMatches = [];
+
+// Fonction pour charger les matchs depuis l'API
+async function loadMatchesFromAPI() {
+  try {
+    console.log("Chargement des matchs depuis l'API...");
+    const response = await axios.get('/api/matches');
+    
+    if (response.data) {
+      console.log("Matchs chargés:", response.data.length);
+      apiMatches = response.data;
+      renderMatches();
+      return response.data;
+    }
+  } catch (error) {
+    console.error("Erreur lors du chargement des matchs:", error);
+    // En cas d'erreur, utiliser les données mockées
+    apiMatches = mockMatches;
+    renderMatches();
+  }
+}
+
+// Mock data for matches - sera utilisé en fallback si l'API échoue
 let mockMatches = [
   {
     id: "1",
@@ -167,13 +190,10 @@ function openBetModal(matchId) {
   console.log("Opening bet modal for match:", matchId)
 
   // Vérifier si l'utilisateur est connecté
-  if (typeof window.isUserLoggedIn === "function" && !window.isUserLoggedIn()) {
-    console.log("User not logged in, showing login prompt")
-    alert("Veuillez vous connecter pour parier")
-    if (typeof window.toggleAuth === "function") {
-      window.toggleAuth()
-    }
-    return
+  if (!window.isUserLoggedIn()) {
+    console.log("User not logged in, redirecting to login page")
+    window.toggleAuth(); // Redirige vers la page de connexion
+    return;
   }
 
   // Trouver le match correspondant
@@ -252,13 +272,16 @@ function renderMatches() {
     return
   }
 
+  // Utiliser les matchs de l'API en priorité, sinon utiliser les mocks
+  const matchesData = apiMatches.length > 0 ? apiMatches : mockMatches;
+
   // Filter matches
-  let filteredMatches = window.mockMatches || mockMatches
+  let filteredMatches = matchesData;
   if (currentFilter !== "all" && matchListElement) {
     console.log("Filtering by sport:", currentFilter);
     console.log("Before filter:", filteredMatches.length, "matches");
     
-    filteredMatches = (window.mockMatches || mockMatches).filter((match) => {
+    filteredMatches = matchesData.filter((match) => {
       console.log("Match sport:", match.sport, "Filter:", currentFilter);
       return match.sport === currentFilter;
     });
@@ -409,8 +432,11 @@ function renderMatches() {
 document.addEventListener("DOMContentLoaded", () => {
   console.log("DOM loaded, initializing matches...")
 
-  // Render matches immediately
-  renderMatches()
+  // Charger les matchs depuis l'API au chargement de la page
+  loadMatchesFromAPI();
+
+  // Render matches immediately with mock data in case API is slow
+  renderMatches();
 
   // Filter buttons
   const filterButtons = document.querySelectorAll(".filter-btn")

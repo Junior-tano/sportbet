@@ -25,7 +25,7 @@
         <ul class="space-y-2">
           <li><a href="{{ route('home') }}" class="text-[#b3b3b3] hover:text-[#10b981]">Accueil</a></li>
           <li><a href="{{ route('matches') }}" class="text-[#b3b3b3] hover:text-[#10b981]">Matchs</a></li>
-          <li><a href="{{ route('my-bets') }}" class="text-[#b3b3b3] hover:text-[#10b981]">Mes Paris</a></li>
+          <li><a href="{{ route('my.bets') }}" class="text-[#b3b3b3] hover:text-[#10b981]">Mes Paris</a></li>
           <li><a href="{{ route('dashboard') }}" class="text-[#b3b3b3] hover:text-[#10b981]">Dashboard</a></li>
         </ul>
       </div>

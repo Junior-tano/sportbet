@@ -47,4 +47,4 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/', [BetController::class, 'store']);
         Route::get('/{id}', [BetController::class, 'show']);
     });
-}); 
+});

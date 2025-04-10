@@ -19,7 +19,7 @@
           <i class="fas fa-trophy"></i>
           <span>Matchs</span>
         </a>
-        <a href="{{ route('my-bets') }}" class="px-3 py-2 rounded-md hover:bg-[#334155] flex items-center gap-2 {{ request()->routeIs('my-bets') ? 'bg-[#334155]' : '' }}">
+        <a href="{{ route('my.bets') }}" class="px-3 py-2 rounded-md hover:bg-[#334155] flex items-center gap-2 {{ request()->routeIs('my.bets') ? 'bg-[#334155]' : '' }}">
           <i class="fas fa-history"></i>
           <span>Mes Paris</span>
         </a>
@@ -53,7 +53,43 @@
         </div>
 
         <div id="user-section" class="flex items-center space-x-4 ml-4">
-          <!-- Will be populated by JavaScript -->
+          @auth
+            <div class="relative auth-user" x-data="{ open: false }">
+              <button @click="open = !open" class="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-[#334155]">
+                <i class="fas fa-user-circle text-lg"></i>
+                <span>{{ Auth::user()->name }}</span>
+                <i class="fas fa-chevron-down text-xs"></i>
+              </button>
+              
+              <div x-show="open" @click.away="open = false" class="absolute right-0 mt-2 w-48 bg-[#1e293b] border border-[#334155] rounded-md shadow-lg z-20">
+                <a href="{{ route('dashboard') }}" class="block px-4 py-2 hover:bg-[#334155]">
+                  <i class="fas fa-tachometer-alt mr-2"></i>
+                  Dashboard
+                </a>
+                <a href="{{ route('my.bets') }}" class="block px-4 py-2 hover:bg-[#334155]">
+                  <i class="fas fa-history mr-2"></i>
+                  Mes paris
+                </a>
+                <div class="border-t border-[#334155]"></div>
+                <form method="POST" action="{{ route('logout') }}">
+                  @csrf
+                  <button type="submit" class="w-full text-left px-4 py-2 hover:bg-[#334155] text-red-400">
+                    <i class="fas fa-sign-out-alt mr-2"></i>
+                    Déconnexion
+                  </button>
+                </form>
+              </div>
+            </div>
+          @else
+            <a href="{{ route('login') }}" class="px-3 py-2 bg-[#334155] hover:bg-[#10b981]/90 text-white rounded-md flex items-center gap-2">
+              <i class="fas fa-sign-in-alt"></i>
+              <span>Connexion</span>
+            </a>
+            <a href="{{ route('register') }}" class="px-3 py-2 bg-[#f59e0b] hover:bg-[#f59e0b]/90 text-[#1a1a1a] rounded-md flex items-center gap-2">
+              <i class="fas fa-user-plus"></i>
+              <span>Inscription</span>
+            </a>
+          @endauth
         </div>
       </div>
 
@@ -78,7 +114,7 @@
         <i class="fas fa-trophy"></i>
         <span>Matchs</span>
       </a>
-      <a href="{{ route('my-bets') }}" class="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-[#334155] {{ request()->routeIs('my-bets') ? 'bg-[#334155]' : '' }}">
+      <a href="{{ route('my.bets') }}" class="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-[#334155] {{ request()->routeIs('my.bets') ? 'bg-[#334155]' : '' }}">
         <i class="fas fa-history"></i>
         <span>Mes Paris</span>
       </a>
@@ -108,7 +144,43 @@
       </div>
 
       <div id="mobile-user-section" class="space-y-2 pt-2">
-        <!-- Will be populated by JavaScript -->
+        @auth
+          <div class="border-t border-[#334155] pt-2">
+            <div class="px-3 py-2 flex items-center gap-2">
+              <i class="fas fa-user-circle text-lg"></i>
+              <span>{{ Auth::user()->name }}</span>
+            </div>
+            
+            <a href="{{ route('dashboard') }}" class="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-[#334155]">
+              <i class="fas fa-tachometer-alt"></i>
+              <span>Dashboard</span>
+            </a>
+            
+            <a href="{{ route('my.bets') }}" class="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-[#334155]">
+              <i class="fas fa-history"></i>
+              <span>Mes paris</span>
+            </a>
+            
+            <form method="POST" action="{{ route('logout') }}" class="px-3 py-2">
+              @csrf
+              <button type="submit" class="w-full flex items-center gap-2 text-red-400">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Déconnexion</span>
+              </button>
+            </form>
+          </div>
+        @else
+          <div class="grid grid-cols-2 gap-2 px-3 pt-2 border-t border-[#334155]">
+            <a href="{{ route('login') }}" class="flex items-center justify-center gap-2 py-2 bg-[#334155] hover:bg-[#334155]/90 text-white rounded-md">
+              <i class="fas fa-sign-in-alt"></i>
+              <span>Connexion</span>
+            </a>
+            <a href="{{ route('register') }}" class="flex items-center justify-center gap-2 py-2 bg-[#f59e0b] hover:bg-[#f59e0b]/90 text-[#1a1a1a] rounded-md">
+              <i class="fas fa-user-plus"></i>
+              <span>Inscription</span>
+            </a>
+          </div>
+        @endauth
       </div>
     </div>
   </div>

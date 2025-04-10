@@ -78,7 +78,7 @@
     <div class="mt-16">
       <div class="flex items-center justify-between mb-6">
         <h2 class="text-2xl font-bold">Paris Récents</h2>
-        <a href="{{ route('my-bets') }}" class="flex items-center text-[#10b981] hover:underline">
+        <a href="{{ route('my.bets') }}" class="flex items-center text-[#10b981] hover:underline">
           <span>Voir tous les paris</span>
           <i class="fas fa-arrow-right ml-2"></i>
         </a>

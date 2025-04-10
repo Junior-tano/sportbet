@@ -1,8 +1,9 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="csrf-token" content="{{ csrf_token() }}">
   <title>@yield('title', 'SportsBet Simulator')</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
@@ -55,7 +56,22 @@
   <script>
     // Define Chart globally
     window.Chart = Chart;
+    
+    // Exposer l'état d'authentification à JavaScript
+    window.APP_STATE = {
+      isAuthenticated: @json(auth()->check()),
+      @auth
+      user: {
+        id: @json(auth()->user()->id),
+        name: @json(auth()->user()->name)
+      }
+      @else
+      user: null
+      @endauth
+    };
   </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
   <script src="{{ asset('assets/js/ui.js') }}"></script>
   <script src="{{ asset('assets/js/auth.js') }}"></script>
   <script src="{{ asset('assets/js/bets.js') }}"></script>
