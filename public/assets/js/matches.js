@@ -237,17 +237,24 @@ function openBetModal(matchId) {
 
 function renderMatches() {
   console.log("Rendering matches...")
+  
+  // Check for match list (full list view)
   const matchListElement = document.getElementById("match-list")
-  console.log("Match list element:", matchListElement)
-
-  if (!matchListElement) {
-    console.error("Match list element not found!")
+  
+  // Check for featured matches (on homepage)
+  const featuredMatchesElement = document.getElementById("featured-matches")
+  
+  // Check for upcoming matches (on dashboard)
+  const upcomingMatchesElement = document.getElementById("upcoming-matches")
+  
+  if (!matchListElement && !featuredMatchesElement && !upcomingMatchesElement) {
+    console.log("No match elements found on this page")
     return
   }
 
   // Filter matches
   let filteredMatches = mockMatches
-  if (currentFilter !== "all") {
+  if (currentFilter !== "all" && matchListElement) {
     filteredMatches = mockMatches.filter((match) => match.sport === currentFilter)
   }
 
@@ -265,10 +272,8 @@ function renderMatches() {
   const isLoggedIn = typeof window.isUserLoggedIn === "function" ? window.isUserLoggedIn() : false
   console.log("User logged in:", isLoggedIn)
 
-  // Render matches
-  matchListElement.innerHTML = sortedMatches
-    .map(
-      (match) => `
+  // Generate HTML for a match card
+  const generateMatchCard = (match) => `
     <div class="overflow-hidden border-0 shadow-lg transition-all duration-200 hover:shadow-xl rounded-lg bg-[#1e293b]">
       <div class="match-card-gradient relative p-4 text-white">
         <div class="absolute right-3 top-3 rounded-full bg-[#f59e0b] px-2 py-1 text-xs font-bold text-[#1a1a1a]">
@@ -322,9 +327,55 @@ function renderMatches() {
         }
       </div>
     </div>
-  `,
-    )
-    .join("")
+  `
+
+  // Generate HTML for a compact match card (for dashboard)
+  const generateCompactMatchCard = (match) => `
+    <div class="flex items-center justify-between p-3 border-b border-[#334155] hover:bg-[#1a2332]/50 transition-colors">
+      <div>
+        <div class="flex items-center gap-2">
+          <span class="text-[#f59e0b]">${getSportIcon(match.sport)}</span>
+          <p class="font-medium">${match.homeTeam} vs ${match.awayTeam}</p>
+        </div>
+        <div class="text-xs text-[#b3b3b3] flex items-center gap-1 mt-1">
+          <i class="fas fa-clock"></i>
+          <span>${formatDate(match.date)}</span>
+        </div>
+      </div>
+      <button class="bet-button text-xs bg-[#f59e0b] hover:bg-[#f59e0b]/90 text-[#1a1a1a] px-2 py-1 rounded" data-match-id="${match.id}">
+        Parier
+      </button>
+    </div>
+  `
+
+  // Render main match list
+  if (matchListElement) {
+    matchListElement.innerHTML = sortedMatches
+      .map(generateMatchCard)
+      .join("")
+  }
+  
+  // Render featured matches (only top 3 by popularity)
+  if (featuredMatchesElement) {
+    const featuredMatches = [...mockMatches]
+      .sort((a, b) => b.popularity - a.popularity)
+      .slice(0, 3)
+    
+    featuredMatchesElement.innerHTML = featuredMatches
+      .map(generateMatchCard)
+      .join("")
+  }
+  
+  // Render upcoming matches for dashboard (only next 5 by date)
+  if (upcomingMatchesElement) {
+    const upcomingMatches = [...mockMatches]
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+      .slice(0, 5)
+    
+    upcomingMatchesElement.innerHTML = upcomingMatches
+      .map(generateCompactMatchCard)
+      .join("")
+  }
 
   // Add event listeners to bet buttons
   const betButtons = document.querySelectorAll(".bet-button")
